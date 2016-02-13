@@ -10,8 +10,11 @@ libraryDependencies ++= Seq(
   "org.apache.spark" % "spark-core_2.10" % "1.6.0" % "provided",
   "org.apache.spark" % "spark-streaming_2.10" % "1.6.0" % "provided",
   "org.apache.spark" % "spark-streaming-kafka_2.10" % "1.6.0",
-  "com.datastax.spark" %% "spark-cassandra-connector" % "1.5.0-RC1"
-)
+  "com.datastax.spark" %% "spark-cassandra-connector" % "1.5.0-RC1" excludeAll(
+    ExclusionRule(organization = "org.apache"),
+    ExclusionRule(organization = "org.scala"),
+    ExclusionRule(organization = "org.tachyonproject")
+    ))
 
 
 val meta = """META.INF(.)*""".r

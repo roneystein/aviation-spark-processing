@@ -18,33 +18,33 @@
   * 9  Arrival time
   * 10 Arrival delay in minutes (>0)
   * 11 Arrival delayed (true/false)
+  *
+  * For each source-destination pair X-Y, calculate the mean arrival delay in minutes
   */
 
 import com.datastax.spark.connector.SomeColumns
+import com.datastax.spark.connector.streaming._
 import kafka.serializer.StringDecoder
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming._
 import org.apache.spark.streaming.kafka._
-import com.datastax.spark.connector.streaming._
 
-import scala.collection.mutable.ListBuffer
-
-object eachTop10Air {
+object xyMeanArrivalDelay {
   def main(args: Array[String]): Unit = {
     val sparkConf = new SparkConf().
-      setAppName("eachTop10Air").
+      setAppName("xyMeanArrivalDelay").
       set("spark.cassandra.connection.host", "127.0.0.1")
 
     val kafkaTopics = Set("on-time")
     val ssc = new StreamingContext(sparkConf, Seconds(10))
-    ssc.checkpoint("checkpoint-eachTop10Air")
+    ssc.checkpoint("checkpoint-xyMeanArrivalDelay")
     val kafkaParams = Map("metadata.broker.list" -> "localhost:9092", "auto.offset.reset" -> "largest")
     val lines = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](ssc, kafkaParams, kafkaTopics).
       map(_._2)
 
     // Get the origin, destination, departure delayed flag and "1"
     val records = lines.map[((String, String), (Int, Int))](
-      x => ((x.split(" ")(5), x.split(" ")(6)), (x.split(" ")(11).toFloat.toInt, 1)))
+      x => ((x.split(" ")(5), x.split(" ")(6)), (x.split(" ")(10).toFloat.toInt, 1)))
     val recordsSum = records.reduceByKey( (x, y) => (x._1 + y._1, x._2 + y._2) )
 
     // Stores the sum
@@ -59,25 +59,11 @@ object eachTop10Air {
     val stateDstream = recordsSum.mapWithState(
       StateSpec.function(mappingFunc))
 
-    // The complete list grouped by O-D, ordered by rank
-    //stateDstream.stateSnapshots().
-    //  map[((String, String), Float)]( x => (x._1, (x._2._1 / x._2._2.toFloat) * 100)).
-    //  transform(rdd => rdd.sortBy(x => x._2)).print(100)
-
-    // tudo pro banco nao adianta, nao consigo ordernar no banco
-    //stateDstream.map[(String, String, Int)]( x => (x._1._1, x._1._2, ((x._2._1 / x._2._2.toFloat) * 100).toInt)).
-    //  saveToCassandra("capstone2", "top10air", SomeColumns(
-    //    "origin", "destination", "percentage_delayed"))
-
     stateDstream.stateSnapshots().
-      map[(String, (String, Int))]( x => (x._1._1, (x._1._2, ((x._2._1 / x._2._2.toFloat)*100).toInt ))).
-      groupByKey().flatMapValues( x => {
-      val top10 = x.toList.sortBy(_._2).take(10)
-      val top10list = (1 to top10.size).toList
-      top10 zip top10list
-      }).map[(String, String, Int, Int)](x => (x._1, x._2._1._1, x._2._1._2, x._2._2)).
-      saveToCassandra("capstone2", "top10air", SomeColumns(
-          "origin", "destination", "percentage_delayed", "rank"))
+      map[(String, String, Float)]( x => (x._1._1, x._1._2, x._2._1 / x._2._2.toFloat )).
+      saveToCassandra("capstone2", "xymeandelay", SomeColumns(
+        "origin", "destination", "mean_delay")
+      )
 
     ssc.start()
     ssc.awaitTermination()
