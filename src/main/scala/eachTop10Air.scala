@@ -33,12 +33,16 @@ object eachTop10Air {
   def main(args: Array[String]): Unit = {
     val sparkConf = new SparkConf().
       setAppName("eachTop10Air").
-      set("spark.cassandra.connection.host", "127.0.0.1")
+      set("spark.cassandra.connection.host", "datanode1").
+      set("spark.cassandra.connection.keep_alive_ms", "12000")
 
     val kafkaTopics = Set("on-time")
     val ssc = new StreamingContext(sparkConf, Seconds(10))
-    ssc.checkpoint("checkpoint-eachTop10Air")
-    val kafkaParams = Map("metadata.broker.list" -> "localhost:9092", "auto.offset.reset" -> "largest")
+    ssc.checkpoint("hdfs://namenode:8020/checkpoint-eachTop10Air")
+    val kafkaParams = Map("metadata.broker.list" -> "kafka1:9092",
+      "auto.offset.reset" -> "smallest",
+      "group.id" -> "capstone",
+      "zookeeper.connect" -> "kafka1:2181")
     val lines = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](ssc, kafkaParams, kafkaTopics).
       map(_._2)
 
@@ -58,16 +62,6 @@ object eachTop10Air {
     }
     val stateDstream = recordsSum.mapWithState(
       StateSpec.function(mappingFunc))
-
-    // The complete list grouped by O-D, ordered by rank
-    //stateDstream.stateSnapshots().
-    //  map[((String, String), Float)]( x => (x._1, (x._2._1 / x._2._2.toFloat) * 100)).
-    //  transform(rdd => rdd.sortBy(x => x._2)).print(100)
-
-    // tudo pro banco nao adianta, nao consigo ordernar no banco
-    //stateDstream.map[(String, String, Int)]( x => (x._1._1, x._1._2, ((x._2._1 / x._2._2.toFloat) * 100).toInt)).
-    //  saveToCassandra("capstone2", "top10air", SomeColumns(
-    //    "origin", "destination", "percentage_delayed"))
 
     stateDstream.stateSnapshots().
       map[(String, (String, Int))]( x => (x._1._1, (x._1._2, ((x._2._1 / x._2._2.toFloat)*100).toInt ))).

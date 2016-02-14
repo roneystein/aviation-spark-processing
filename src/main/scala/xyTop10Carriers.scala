@@ -33,12 +33,16 @@ object xyTop10Carriers {
   def main(args: Array[String]): Unit = {
     val sparkConf = new SparkConf().
       setAppName("xyTop10Carriers").
-      set("spark.cassandra.connection.host", "127.0.0.1")
+      set("spark.cassandra.connection.host", "datanode1").
+      set("spark.cassandra.connection.keep_alive_ms", "12000")
 
     val kafkaTopics = Set("on-time")
     val ssc = new StreamingContext(sparkConf, Seconds(10))
-    ssc.checkpoint("checkpoint-xyTop10Carriers")
-    val kafkaParams = Map("metadata.broker.list" -> "localhost:9092", "auto.offset.reset" -> "largest")
+    ssc.checkpoint("hdfs://namenode:8020/checkpoint-xyTop10Carriers")
+    val kafkaParams = Map("metadata.broker.list" -> "kafka1:9092",
+      "auto.offset.reset" -> "smallest",
+      "group.id" -> "capstone",
+      "zookeeper.connect" -> "kafka1:2181")
     val lines = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](ssc, kafkaParams, kafkaTopics).
       map(_._2)
 

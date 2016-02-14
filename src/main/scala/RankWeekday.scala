@@ -30,8 +30,11 @@ object RankWeekday {
     val sparkConf = new SparkConf().setAppName("RankWeekday")
     val kafkaTopics = Set("on-time")
     val ssc = new StreamingContext(sparkConf, Seconds(10))
-    ssc.checkpoint("checkpoint-rankweekday")
-    val kafkaParams = Map("metadata.broker.list" -> "localhost:9092", "auto.offset.reset" -> "largest")
+    ssc.checkpoint("hdfs://namenode:8020/checkpoint-rankweekday")
+    val kafkaParams = Map("metadata.broker.list" -> "kafka1:9092",
+      "auto.offset.reset" -> "smallest",
+      "group.id" -> "capstone",
+      "zookeeper.connect" -> "kafka1:2181")
     val lines = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](ssc, kafkaParams, kafkaTopics).
       map(_._2)
 
