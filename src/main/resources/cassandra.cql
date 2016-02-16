@@ -27,18 +27,16 @@ destination text,
 mean_delay float,
 PRIMARY KEY (origin, destination) ) ;
 
-CREATE TABLE capstone.xyz (
-xdepdate text,
-xdeptime text,
-xflight text,
+// departure_date, period (AM/PM), origin, destination, flight, departure_time, delay)
+CREATE TABLE capstone2.xyz (
+departure_date text,
+period text,
 origin text,
-intermediate text,
 destination text,
-ydepdate text,
-ydeptime text,
-yflight text,
+flight text,
+departure_time text,
 delay int,
-PRIMARY KEY (xdepdate, origin, intermediate, destination) ) ;
+PRIMARY KEY (departure_date, period, origin, destination) ) ;
 
 
 TRUNCATE top10air;

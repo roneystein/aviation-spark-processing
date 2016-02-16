@@ -39,7 +39,6 @@ object xyz {
       set("spark.cassandra.connection.keep_alive_ms", "12000")
 
     val kafkaTopics = Set("on-time")
-    val timeFormat = DateTimeFormat.forPattern("yyyy-MM-dd")
     val ssc = new StreamingContext(sparkConf, Seconds(10))
     ssc.checkpoint("hdfs://namenode:8020/checkpoint-xyz")
     val kafkaParams = Map("metadata.broker.list" -> "kafka1:9092",
@@ -49,49 +48,31 @@ object xyz {
     val lines = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](ssc, kafkaParams, kafkaTopics).
       map(_._2)
 
-    val records = lines.map[((DateTime, String, String), (String, String, Int))](
-      x => ((DateTime.parse(x.split(" ")(0), timeFormat),
+    // (flight date, origin, destination, AM/PM, flight, departure time, arrival delay in minutes)
+    val records = lines.map[((DateTime, String, String, String), (String, String, Int))](
+      x => ((DateTime.parse(x.split(" ")(0), DateTimeFormat.forPattern("yyyy-MM-dd")),
         x.split(" ")(5),
-        x.split(" ")(6)), (
+        x.split(" ")(6),
+        if (x.split(" ")(10).toFloat.toInt < 1200) "AM" else "PM"
+        ), (
         x.split(" ")(3) + " " + x.split(" ")(4),
         x.split(" ")(7),
         x.split(" ")(10).toFloat.toInt ) ) )
 
-    val firstLeg = records.filter( x => x._2._2.toInt < 1200 ).groupByKey().flatMapValues( x=> x.toList.sortBy(_._3).take(1) )
-    val secondLeg = records.filter( x => x._2._2.toInt >= 1200 ).groupByKey().flatMapValues( x=> x.toList.sortBy(_._3).take(1) )
-
-
-
-
-
-
-
-    /**
-
-    val recordsSum = records.reduceByKey( (x, y) => (x._1 + y._1, x._2 + y._2) )
+    val flights = records.reduceByKey( (x, y) => if (x._3 > y._3) y else x )
 
     // Stores the sum
-    val mappingFunc = (word: (String, String, String), one: Option[(Int, Int)], state: State[(Int, Int)]) => {
-      val read = one.getOrElse((0,0))
-      val saved = state.getOption.getOrElse((0,0))
-      val sum = (read._1 + saved._1, read._2 + saved._2)
-      val output = (word, sum)
-      state.update(sum)
-      output
+    val mappingFunc = (word: (DateTime, String, String, String), one: Option[(String, String, Int)], state: State[(String, String, Int)]) => {
+        val read = one.getOrElse(("", "", Int.MaxValue))
+        val saved = state.getOption.getOrElse(("", "", Int.MaxValue))
+        val best = if (read._3 > saved._3) saved else read
+        state.update(best)
+        (word._1.toString("dd/MM/yyyy"), word._4, word._2, word._3, best._1, best._2, best._3)
     }
-    val stateDstream = recordsSum.mapWithState(
-      StateSpec.function(mappingFunc))
 
-    stateDstream.stateSnapshots().
-      map[((String, String), (String, Int))]( x => ((x._1._1, x._1._2), (x._1._3, ((x._2._1 / x._2._2.toFloat)*100).toInt ))).
-      groupByKey().flatMapValues( x => {
-      val top10 = x.toList.sortBy(_._2).take(10)
-      val top10list = (1 to top10.size).toList
-      top10 zip top10list
-      }).map[(String, String, String, Int, Int)](x => (x._1._1, x._1._2, x._2._1._1, x._2._1._2, x._2._2)).
-      saveToCassandra("capstone2", "xytop10carriers", SomeColumns(
-          "origin", "destination", "carrier", "percentage_delayed", "rank"))
-*/
+    val flightsDstream = flights.mapWithState(StateSpec.function(mappingFunc))
+    flightsDstream.saveToCassandra("capstone2", "xyz", SomeColumns(
+          "departure_date", "period", "origin", "destination", "flight", "departure_time", "delay" ))
 
     ssc.start()
     ssc.awaitTermination()

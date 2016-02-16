@@ -15,7 +15,6 @@ libraryDependencies ++= Seq(
     ExclusionRule(organization = "org.apache.hadoop"),
     ExclusionRule(organization = "org.scala-lang"),
     ExclusionRule(organization = "org.apache.commons"),
-    ExclusionRule(organization = "org.joda"),
     ExclusionRule(organization = "com.typesafe.akka"),
     ExclusionRule(organization = "commons-beanutils"),
     ExclusionRule(organization = "commons-cli"),
