@@ -59,9 +59,10 @@ object xyz {
         x.split(" ")(7),
         x.split(" ")(10).toFloat.toInt ) ) )
 
+    // Reduces and gets only the least delayed flight
     val flights = records.reduceByKey( (x, y) => if (x._3 > y._3) y else x )
 
-    // Stores the sum
+    // Stores the flights but keep only the least delayed
     val mappingFunc = (word: (DateTime, String, String, String), one: Option[(String, String, Int)], state: State[(String, String, Int)]) => {
         val read = one.getOrElse(("", "", Int.MaxValue))
         val saved = state.getOption.getOrElse(("", "", Int.MaxValue))

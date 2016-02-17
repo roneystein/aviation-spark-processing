@@ -1,5 +1,7 @@
 /**
   * Created by roney on 09/02/16.
+  *
+  * For each source-destination pair X-Y, rank the top-10 carriers in decreasing order of on-time arrival performance
   */
 
 /**
@@ -19,7 +21,6 @@
   * 10 Arrival delay in minutes (>0)
   * 11 Arrival delayed (true/false)
   *
-  * For each source-destination pair X-Y, rank the top-10 carriers in decreasing order of on-time arrival
   */
 
 import com.datastax.spark.connector.SomeColumns
@@ -46,12 +47,13 @@ object xyTop10Carriers {
     val lines = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](ssc, kafkaParams, kafkaTopics).
       map(_._2)
 
-    // Get the origin, destination, departure delayed flag and "1"
+    // Get the origin, destination, arrival delayed flag and "1"
     val records = lines.map[((String, String, String), (Int, Int))](
       x => ((x.split(" ")(5), x.split(" ")(6), x.split(" ")(3)), (x.split(" ")(11).toFloat.toInt, 1)))
+    // Reduce by key summing delayed flights and count
     val recordsSum = records.reduceByKey( (x, y) => (x._1 + y._1, x._2 + y._2) )
 
-    // Stores the sum
+    // Stores the sum of delayed flights and total per origin-destination-carrier
     val mappingFunc = (word: (String, String, String), one: Option[(Int, Int)], state: State[(Int, Int)]) => {
       val read = one.getOrElse((0,0))
       val saved = state.getOption.getOrElse((0,0))
@@ -63,6 +65,8 @@ object xyTop10Carriers {
     val stateDstream = recordsSum.mapWithState(
       StateSpec.function(mappingFunc))
 
+    // Gets the entire state, calculates the percentage of delayed flights
+    // sorts, rank the top 10 and save to Cassandra
     stateDstream.stateSnapshots().
       map[((String, String), (String, Int))]( x => ((x._1._1, x._1._2), (x._1._3, ((x._2._1 / x._2._2.toFloat)*100).toInt ))).
       groupByKey().flatMapValues( x => {

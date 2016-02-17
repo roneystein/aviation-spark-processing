@@ -1,5 +1,7 @@
 /**
   * Created by roney on 09/02/16.
+  *
+  * For each source-destination pair X-Y, calculate the mean arrival delay in minutes
   */
 
 /**
@@ -19,7 +21,6 @@
   * 10 Arrival delay in minutes (>0)
   * 11 Arrival delayed (true/false)
   *
-  * For each source-destination pair X-Y, calculate the mean arrival delay in minutes
   */
 
 import com.datastax.spark.connector.SomeColumns
@@ -46,9 +47,10 @@ object xyMeanArrivalDelay {
     val lines = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](ssc, kafkaParams, kafkaTopics).
       map(_._2)
 
-    // Get the origin, destination, departure delayed flag and "1"
+    // Get the origin, destination, arrival delay in minutes (>0) and "1"
     val records = lines.map[((String, String), (Int, Int))](
       x => ((x.split(" ")(5), x.split(" ")(6)), (x.split(" ")(10).toFloat.toInt, 1)))
+    // Reduces by origin-destination and sums delay and flights
     val recordsSum = records.reduceByKey( (x, y) => (x._1 + y._1, x._2 + y._2) )
 
     // Stores the sum
@@ -63,6 +65,7 @@ object xyMeanArrivalDelay {
     val stateDstream = recordsSum.mapWithState(
       StateSpec.function(mappingFunc))
 
+    // Calculates the mean delay and stores into Cassandra
     stateDstream.stateSnapshots().
       map[(String, String, Float)]( x => (x._1._1, x._1._2, x._2._1 / x._2._2.toFloat )).
       saveToCassandra("capstone2", "xymeandelay", SomeColumns(

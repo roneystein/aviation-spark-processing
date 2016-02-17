@@ -1,5 +1,7 @@
 /**
   * Created by roney on 09/02/16.
+  *
+  * Per origin top-10 rank of destinations on departure performance
   */
 
 /**
@@ -48,7 +50,9 @@ object eachTop10Air {
 
     // Get the origin, destination, departure delayed flag and "1"
     val records = lines.map[((String, String), (Int, Int))](
-      x => ((x.split(" ")(5), x.split(" ")(6)), (x.split(" ")(11).toFloat.toInt, 1)))
+      x => ((x.split(" ")(5), x.split(" ")(6)), (x.split(" ")(8).toFloat.toInt, 1)))
+
+    // Sums the delayed flights and total of flights per origin-destination pair
     val recordsSum = records.reduceByKey( (x, y) => (x._1 + y._1, x._2 + y._2) )
 
     // Stores the sum
@@ -60,9 +64,12 @@ object eachTop10Air {
       state.update(sum)
       output
     }
+
     val stateDstream = recordsSum.mapWithState(
       StateSpec.function(mappingFunc))
 
+    //Groups by origin and returns the sorted top-10 list of destinations
+    //Stores into Cassandra
     stateDstream.stateSnapshots().
       map[(String, (String, Int))]( x => (x._1._1, (x._1._2, ((x._2._1 / x._2._2.toFloat)*100).toInt ))).
       groupByKey().flatMapValues( x => {
