@@ -99,54 +99,54 @@ Question 2.2 results
 --------+------+-------------+--------------------
     SRQ |    1 |         EYW |                  0
     SRQ |    2 |         FLL |                  0
-    SRQ |    3 |         MCO |                  6
-    SRQ |    4 |         TPA |                  6
-    SRQ |    5 |         RDU |                  6
-    SRQ |    6 |         BNA |                  7
-    SRQ |    7 |         RSW |                 10
-    SRQ |    8 |         BWI |                 11
-    SRQ |    9 |         IAH |                 12
-    SRQ |   10 |         MSP |                 12
+    SRQ |    3 |         TPA |                  4
+    SRQ |    4 |         MEM |                  4
+    SRQ |    5 |         MCO |                  4
+    SRQ |    6 |         BNA |                  5
+    SRQ |    7 |         RDU |                  5
+    SRQ |    8 |         IAH |                  6
+    SRQ |    9 |         MSP |                  8
+    SRQ |   10 |         RSW |                  8
     CMH |    1 |         AUS |                  0
     CMH |    2 |         SYR |                  0
     CMH |    3 |         ALB |                  0
-    CMH |    4 |         SDF |                  6
-    CMH |    5 |         DAY |                 10
-    CMH |    6 |         BNA |                 10
-    CMH |    7 |         IND |                 11
-    CMH |    8 |         DTW |                 13
-    CMH |    9 |         SLC |                 13
-    CMH |   10 |         TPA |                 14
-    JFK |    1 |         ANC |                  0
-    JFK |    2 |         SAT |                  0
+    CMH |    4 |         OMA |                  0
+    CMH |    5 |         CLE |                  6
+    CMH |    6 |         SDF |                  7
+    CMH |    7 |         IND |                  8
+    CMH |    8 |         DAY |                  9
+    CMH |    9 |         MEM |                  9
+    CMH |   10 |         MSP |                  9
+    JFK |    1 |         SWF |                  0
+    JFK |    2 |         ANC |                  0
     JFK |    3 |         ISP |                  0
-    JFK |    4 |         ABQ |                  0
-    JFK |    5 |         SWF |                  0
-    JFK |    6 |         STX |                  9
-    JFK |    7 |         UCA |                 12
-    JFK |    8 |         BQN |                 16
-    JFK |    9 |         HPN |                 17
-    JFK |   10 |         SNA |                 18
-    SEA |    1 |         MSY |                  0
-    SEA |    2 |         EUG |                  0
-    SEA |    3 |         PSC |                  7
-    SEA |    4 |         LIH |                 10
-    SEA |    5 |         BNA |                 13
-    SEA |    6 |         YKM |                 14
-    SEA |    7 |         CLE |                 15
-    SEA |    8 |         CVG |                 15
-    SEA |    9 |         MDW |                 15
-    SEA |   10 |         MEM |                 15
+    JFK |    4 |         AGS |                  0
+    JFK |    5 |         ABQ |                  0
+    JFK |    6 |         MYR |                  0
+    JFK |    7 |         UCA |                  3
+    JFK |    8 |         STX |                  5
+    JFK |    9 |         HPN |                  8
+    JFK |   10 |         STT |                  8
+    SEA |    1 |         EUG |                  0
+    SEA |    2 |         PSC |                  7
+    SEA |    3 |         CVG |                  8
+    SEA |    4 |         MEM |                 10
+    SEA |    5 |         DTW |                 11
+    SEA |    6 |         IND |                 11
+    SEA |    7 |         IAH |                 12
+    SEA |    8 |         LIH |                 12
+    SEA |    9 |         DFW |                 12
+    SEA |   10 |         CLE |                 12
     BOS |    1 |         SWF |                  0
     BOS |    2 |         ONT |                  0
-    BOS |    3 |         BDL |                 13
-    BOS |    4 |         LGB |                 14
-    BOS |    5 |         LGA |                 14
-    BOS |    6 |         PVD |                 16
-    BOS |    7 |         DCA |                 16
-    BOS |    8 |         AUS |                 16
-    BOS |    9 |         OAK |                 16
-    BOS |   10 |         MSY |                 17
+    BOS |    3 |         LGA |                  7
+    BOS |    4 |         AUS |                  8
+    BOS |    5 |         BDL |                 10
+    BOS |    6 |         MSY |                 10
+    BOS |    7 |         LGB |                 12
+    BOS |    8 |         OAK |                 12
+    BOS |    9 |         RSW |                 13
+    BOS |   10 |         CVG |                 13
 
 ==============================================================
 
@@ -242,4 +242,66 @@ cqlsh:capstone2> select * from xymeandelay where origin = 'MSP' and destination 
 
 
 Question 3.2 results
+cqlsh> use capstone2;
+cqlsh:capstone2> select * from xyz where departure_date = '03/04/2008' and period =
+             ... 'AM' and origin = 'BOS' and destination = 'ATL';
 
+ departure_date | period | origin | destination | delay | departure_time | flight
+----------------+--------+--------+-------------+-------+----------------+--------
+     03/04/2008 |     AM |    BOS |         ATL |     7 |           0600 | FL 270
+
+(1 rows)
+cqlsh:capstone2> select * from xyz where departure_date = '05/04/2008' and period = 'PM' and origin = 'ATL' and destination = 'LAX';
+
+ departure_date | period | origin | destination | delay | departure_time | flight
+----------------+--------+--------+-------------+-------+----------------+--------
+     05/04/2008 |     PM |    ATL |         LAX |     0 |           1705 |  DL 75
+
+(1 rows)
+cqlsh:capstone2> select * from xyz where departure_date = '07/09/2008' and period =
+             ... 'AM' and origin = 'PHX' and destination = 'JFK';
+
+ departure_date | period | origin | destination | delay | departure_time | flight
+----------------+--------+--------+-------------+-------+----------------+--------
+     07/09/2008 |     AM |    PHX |         JFK |     0 |           1130 | B6 178
+
+(1 rows)
+cqlsh:capstone2> select * from xyz where departure_date = '09/09/2008' and period = 'PM' and origin = 'JFK' and destination = 'MSP';
+
+ departure_date | period | origin | destination | delay | departure_time | flight
+----------------+--------+--------+-------------+-------+----------------+--------
+     09/09/2008 |     PM |    JFK |         MSP |     0 |           1750 | NW 609
+
+(1 rows)
+cqlsh:capstone2>
+cqlsh:capstone2> select * from xyz where departure_date = '24/01/2008' and period =
+             ... 'AM' and origin = 'DFW' and destination = 'STL';
+
+ departure_date | period | origin | destination | delay | departure_time | flight
+----------------+--------+--------+-------------+-------+----------------+---------
+     24/01/2008 |     AM |    DFW |         STL |     0 |           0945 | AA 1030
+
+(1 rows)
+cqlsh:capstone2> select * from xyz where departure_date = '26/01/2008' and period = 'PM' and origin = 'STL' and destination = 'ORD';
+
+ departure_date | period | origin | destination | delay | departure_time | flight
+----------------+--------+--------+-------------+-------+----------------+---------
+     26/01/2008 |     PM |    STL |         ORD |     0 |           1335 | AA 1835
+
+(1 rows)
+cqlsh:capstone2>
+cqlsh:capstone2> select * from xyz where departure_date = '16/05/2008' and period =
+             ... 'AM' and origin = 'LAX' and destination = 'MIA';
+
+ departure_date | period | origin | destination | delay | departure_time | flight
+----------------+--------+--------+-------------+-------+----------------+--------
+     16/05/2008 |     AM |    LAX |         MIA |    10 |           0820 | AA 280
+
+(1 rows)
+cqlsh:capstone2> select * from xyz where departure_date = '18/05/2008' and period = 'PM' and origin = 'MIA' and destination = 'LAX';
+
+ departure_date | period | origin | destination | delay | departure_time | flight
+----------------+--------+--------+-------------+-------+----------------+--------
+     18/05/2008 |     PM |    MIA |         LAX |     0 |           1930 | AA 456
+
+(1 rows)
