@@ -2,10 +2,6 @@ Scripts for Cassandra
 
 CREATE KEYSPACE capstone2 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
 
-CREATE TABLE capstone2.top10carriers (
-origin text PRIMARY KEY,
-least_delayed text ) ;
-
 CREATE TABLE capstone2.top10air (
 rank int,
 origin text,
@@ -40,7 +36,6 @@ PRIMARY KEY (departure_date, period, origin, destination) ) ;
 
 
 TRUNCATE top10air;
-TRUNCATE top10carriers;
-TRUNCATE xytop10arrival;
+TRUNCATE xytop10carriers;
 TRUNCATE xymeandelay;
 TRUNCATE xyz;

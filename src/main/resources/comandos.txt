@@ -1,0 +1,234 @@
+Comandos
+
+Q1.1
+/opt/spark/bin/spark-submit --class Top10Airports --master spark://namenode:7077  /home/ubuntu/sparkccc2-assembly-1.0.jar 2>/home/ubuntu/spark.error
+
+Q1.3
+/opt/spark/bin/spark-submit --class RankWeekday --master spark://namenode:7077  /home/ubuntu/sparkccc2-assembly-1.0.jar 2>/home/ubuntu/spark.error
+
+Q2.2
+/opt/spark/bin/spark-submit --class eachTop10Air --master spark://namenode:7077  /home/ubuntu/sparkccc2-assembly-1.0.jar
+
+select * from top10air where origin in ('SRQ', 'CMH', 'JFK', 'SEA', 'BOS');
+
+
+Q2.3
+/opt/spark/bin/spark-submit --class xyTop10Carriers --master spark://namenode:7077  /home/ubuntu/sparkccc2-assembly-1.0.jar
+
+select * from xytop10carriers where origin = 'LGA' and destination = 'BOS';
+select * from xytop10carriers where origin = 'BOS' and destination = 'LGA';
+select * from xytop10carriers where origin = 'OKC' and destination = 'DFW';
+select * from xytop10carriers where origin = 'MSP' and destination = 'ATL';
+
+
+Q2.4
+/opt/spark/bin/spark-submit --class xyMeanArrivalDelay --master spark://namenode:7077  /home/ubuntu/sparkccc2-assembly-1.0.jar
+
+select * from xymeandelay where origin = 'LGA' and destination = 'BOS';
+select * from xymeandelay where origin = 'BOS' and destination = 'LGA';
+select * from xymeandelay where origin = 'OKC' and destination = 'DFW';
+select * from xymeandelay where origin = 'MSP' and destination = 'ATL';
+
+
+Q3.2
+/opt/spark/bin/spark-submit --class xyz --master spark://namenode:7077  /home/ubuntu/sparkccc2-assembly-1.0.jar
+
+select * from xyz where departure_date = '03/04/2008' and period = 
+'AM' and origin = 'BOS' and destination = 'ATL';
+select * from xyz where departure_date = '05/04/2008' and period = 'PM' and origin = 'ATL' and destination = 'LAX';
+
+select * from xyz where departure_date = '07/09/2008' and period = 
+'AM' and origin = 'PHX' and destination = 'JFK';
+select * from xyz where departure_date = '09/09/2008' and period = 'PM' and origin = 'JFK' and destination = 'MSP';
+
+select * from xyz where departure_date = '24/01/2008' and period = 
+'AM' and origin = 'DFW' and destination = 'STL';
+select * from xyz where departure_date = '26/01/2008' and period = 'PM' and origin = 'STL' and destination = 'ORD';
+
+select * from xyz where departure_date = '16/05/2008' and period = 
+'AM' and origin = 'LAX' and destination = 'MIA';
+select * from xyz where departure_date = '18/05/2008' and period = 'PM' and origin = 'MIA' and destination = 'LAX';
+
+
+
+All origin-destination data
+for i in `ls /home/ec2-user/dataset/od/*.bz2`; do bzcat $i | /opt/kafka/bin/kafka-console-producer.sh --broker-list kafka1:9092 --topic origin-destination; echo $i; done
+
+All on-time data
+for i in `ls /home/ec2-user/dataset/on/*.bz2`; do bzcat $i | /opt/kafka/bin/kafka-console-producer.sh --broker-list kafka1:9092 --topic on-time ; echo $i; done
+
+2008 on-time data
+for i in `ls /home/ec2-user/dataset/on/On_Time_On_Time_Performance_2008_*.bz2`; do bzcat $i | /opt/kafka/bin/kafka-console-producer.sh --broker-list kafka1:9092 --topic on-time ; echo $i; done
+
+Question 1.1 results
+
+(ATL,58172803)
+(ORD,49587804)
+(DFW,44350601)
+(DEN,31218149)
+(LAX,25450055)
+(MSP,24667738)
+(CLT,24254589)
+(DTW,22926686)
+(PHX,21863253)
+(IAH,21500862)
+
+Question 1.3 results
+(Saturday,17.169464)
+(Tuesday,18.838078)
+(Monday,19.60201)
+(Sunday,19.78856)
+(Wednesday,20.43235)
+(Thursday,22.983517)
+(Friday,23.879276)
+
+
+Question 2.2 results
+ origin | rank | destination | percentage_delayed
+--------+------+-------------+--------------------
+    SRQ |    1 |         EYW |                  0
+    SRQ |    2 |         FLL |                  0
+    SRQ |    3 |         MCO |                  6
+    SRQ |    4 |         TPA |                  6
+    SRQ |    5 |         RDU |                  6
+    SRQ |    6 |         BNA |                  7
+    SRQ |    7 |         RSW |                 10
+    SRQ |    8 |         BWI |                 11
+    SRQ |    9 |         IAH |                 12
+    SRQ |   10 |         MSP |                 12
+    CMH |    1 |         AUS |                  0
+    CMH |    2 |         SYR |                  0
+    CMH |    3 |         ALB |                  0
+    CMH |    4 |         SDF |                  6
+    CMH |    5 |         DAY |                 10
+    CMH |    6 |         BNA |                 10
+    CMH |    7 |         IND |                 11
+    CMH |    8 |         DTW |                 13
+    CMH |    9 |         SLC |                 13
+    CMH |   10 |         TPA |                 14
+    JFK |    1 |         ANC |                  0
+    JFK |    2 |         SAT |                  0
+    JFK |    3 |         ISP |                  0
+    JFK |    4 |         ABQ |                  0
+    JFK |    5 |         SWF |                  0
+    JFK |    6 |         STX |                  9
+    JFK |    7 |         UCA |                 12
+    JFK |    8 |         BQN |                 16
+    JFK |    9 |         HPN |                 17
+    JFK |   10 |         SNA |                 18
+    SEA |    1 |         MSY |                  0
+    SEA |    2 |         EUG |                  0
+    SEA |    3 |         PSC |                  7
+    SEA |    4 |         LIH |                 10
+    SEA |    5 |         BNA |                 13
+    SEA |    6 |         YKM |                 14
+    SEA |    7 |         CLE |                 15
+    SEA |    8 |         CVG |                 15
+    SEA |    9 |         MDW |                 15
+    SEA |   10 |         MEM |                 15
+    BOS |    1 |         SWF |                  0
+    BOS |    2 |         ONT |                  0
+    BOS |    3 |         BDL |                 13
+    BOS |    4 |         LGB |                 14
+    BOS |    5 |         LGA |                 14
+    BOS |    6 |         PVD |                 16
+    BOS |    7 |         DCA |                 16
+    BOS |    8 |         AUS |                 16
+    BOS |    9 |         OAK |                 16
+    BOS |   10 |         MSY |                 17
+
+==============================================================
+
+Question 2.3 results
+cqlsh> use capstone2;
+cqlsh:capstone2> select * from xytop10carriers where origin = 'LGA' and destination = 'BOS';
+
+ origin | destination | rank | carrier | percentage_delayed
+--------+-------------+------+---------+--------------------
+    LGA |         BOS |    1 |      TW |                  0
+    LGA |         BOS |    2 |      DL |                 13
+    LGA |         BOS |    3 |      US |                 13
+    LGA |         BOS |    4 |      EA |                 16
+    LGA |         BOS |    5 |      MQ |                 28
+    LGA |         BOS |    6 |      NW |                 30
+    LGA |         BOS |    7 |      OH |                 39
+    LGA |         BOS |    8 |      AA |                100
+
+(8 rows)
+cqlsh:capstone2> select * from xytop10carriers where origin = 'BOS' and destination = 'LGA';
+
+ origin | destination | rank | carrier | percentage_delayed
+--------+-------------+------+---------+--------------------
+    BOS |         LGA |    1 |      TW |                  0
+    BOS |         LGA |    2 |      DL |                 11
+    BOS |         LGA |    3 |      US |                 15
+    BOS |         LGA |    4 |      EA |                 18
+    BOS |         LGA |    5 |      MQ |                 30
+    BOS |         LGA |    6 |      NW |                 33
+    BOS |         LGA |    7 |      AA |                 50
+    BOS |         LGA |    8 |      OH |                 62
+    BOS |         LGA |    9 |      TZ |                100
+
+(9 rows)
+cqlsh:capstone2> select * from xytop10carriers where origin = 'OKC' and destination = 'DFW';
+
+ origin | destination | rank | carrier | percentage_delayed
+--------+-------------+------+---------+--------------------
+    OKC |         DFW |    1 |      TW |                  5
+    OKC |         DFW |    2 |      EV |                 12
+    OKC |         DFW |    3 |      AA |                 12
+    OKC |         DFW |    4 |      OO |                 14
+    OKC |         DFW |    5 |      DL |                 14
+    OKC |         DFW |    6 |      MQ |                 18
+    OKC |         DFW |    7 |      OH |                100
+
+(7 rows)
+cqlsh:capstone2> select * from xytop10carriers where origin = 'MSP' and destination = 'ATL';
+
+ origin | destination | rank | carrier | percentage_delayed
+--------+-------------+------+---------+--------------------
+    MSP |         ATL |    1 |      EA |                 13
+    MSP |         ATL |    2 |      OO |                 18
+    MSP |         ATL |    3 |      FL |                 20
+    MSP |         ATL |    4 |      DL |                 23
+    MSP |         ATL |    5 |      NW |                 24
+    MSP |         ATL |    6 |      OH |                 25
+    MSP |         ATL |    7 |      EV |                 27
+
+=============================================================
+
+Question 2.4 results
+
+cqlsh:capstone2> select * from xymeandelay where origin = 'LGA' and destination = 'BOS';
+
+ origin | destination | mean_delay
+--------+-------------+------------
+    LGA |         BOS |    7.95104
+
+(1 rows)
+cqlsh:capstone2> select * from xymeandelay where origin = 'BOS' and destination = 'LGA';
+
+ origin | destination | mean_delay
+--------+-------------+------------
+    BOS |         LGA |    8.42176
+
+(1 rows)
+cqlsh:capstone2> select * from xymeandelay where origin = 'OKC' and destination = 'DFW';
+
+ origin | destination | mean_delay
+--------+-------------+------------
+    OKC |         DFW |    8.37676
+
+(1 rows)
+cqlsh:capstone2> select * from xymeandelay where origin = 'MSP' and destination = 'ATL';
+
+ origin | destination | mean_delay
+--------+-------------+------------
+    MSP |         ATL |   12.07444
+
+(1 rows)
+
+
+
+Question 3.2 results
+
