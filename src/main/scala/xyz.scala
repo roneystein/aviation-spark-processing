@@ -53,7 +53,7 @@ object xyz {
       x => ((DateTime.parse(x.split(" ")(0), DateTimeFormat.forPattern("yyyy-MM-dd")),
         x.split(" ")(5),
         x.split(" ")(6),
-        if (x.split(" ")(10).toFloat.toInt < 1200) "AM" else "PM"
+        if (x.split(" ")(7).toInt < 1200) "AM" else "PM"
         ), (
         x.split(" ")(3) + " " + x.split(" ")(4),
         x.split(" ")(7),
