@@ -1,5 +1,16 @@
 Comandos
 
+FAZER:
+Recompilar com o novo código
+Limpar as áreas de checkpoint
+Cassandra: use capstone2; truncate capstone2.top10air;
+Rodar o eachTop10Air capturando o video
+Atualizar o vídeo e jogar no youtube
+Colocar os resultados no relatório
+Colocar a URL do vídeo no relatório
+
+
+
 Q1.1
 /opt/spark/bin/spark-submit --class Top10Airports --master spark://namenode:7077  /home/ubuntu/sparkccc2-assembly-1.0.jar 2>/home/ubuntu/spark.error
 
